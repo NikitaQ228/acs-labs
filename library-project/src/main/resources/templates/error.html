@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ошибка')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('')}"></header>
+<main>
+    <h1 th:text="${status == 404 ? 'Страница не найдена' : 'Не удалось выполнить запрос'}"></h1>
+    <p class="muted" th:text="${status == 404 ? 'Возможно, запись уже удалена или в адресе есть ошибка.' : 'Вернитесь в каталог и попробуйте ещё раз.'}"></p>
+    <p><a th:href="@{/books}">Перейти к книгам</a></p>
+</main>
+</body>
+</html>

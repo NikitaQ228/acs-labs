@@ -5,6 +5,6 @@
 | Практическая работа | Задание | Решение                             |
 | --- | --- |-------------------------------------|
 | № 1. Jakarta EE | [PDF](Задания/01.%20JakartaEE.pdf) | [support-service](support-service/) |
-| № 2. Spring | [PDF](Задания/02.%20Spring.pdf) | [library-project](support-service/) |
+| № 2. Spring | [PDF](Задания/02.%20Spring.pdf) | [library-project](library-project/) |
 | № 3. REST | [PDF](Задания/03.%20REST.pdf) | —                                   |
 | № 4. JMS | [PDF](Задания/04.%20JMS.pdf) | —                                   |

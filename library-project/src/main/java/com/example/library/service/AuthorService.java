@@ -58,15 +58,16 @@ public class AuthorService {
      *
      * @param id идентификатор автора или {@code null} для создания
      * @param form проверенные данные формы
+     * @return сохранённый автор с идентификатором и загруженными книгами
      * @throws ResponseStatusException с HTTP-статусом 404, если изменяемого автора нет
      */
     @Transactional
-    public void save(Long id, AuthorForm form) {
+    public Athor save(Long id, AuthorForm form) {
         Athor author = id == null ? new Athor() : get(id);
         author.setFirstName(form.getFirstName().strip());
         author.setLastName(form.getLastName().strip());
         author.setBirthDate(form.getBirthDate());
-        authorRepository.save(author);
+        return authorRepository.save(author);
     }
 
     /**

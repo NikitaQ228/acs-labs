@@ -103,3 +103,63 @@ JOIN book_authors ba ON ba.book_id = b.id
 JOIN authors a ON a.id = ba.author_id
 ORDER BY b.title, a.last_name, a.first_name;
 ```
+
+## Практическая работа № 3 «RESTful веб-сервис»
+
+Условия работы — [03. REST.pdf](../Задания/03.%20REST.pdf).
+
+### Выбор технологии
+
+| Критерий | Jakarta REST (JAX-RS) | Spring REST |
+| --- | --- | --- |
+| Маршрутизация | Ресурсы с `@Path` и аннотациями `@GET`, `@POST`, `@PUT`, `@DELETE` | `@RestController` и аннотации Spring MVC, например `@GetMapping` и `@PostMapping` |
+| JSON и XML | `@Consumes` и `@Produces` определяют форматы, а тело обрабатывают провайдеры `MessageBodyReader` и `MessageBodyWriter`, например JSON-B и JAXB | `consumes` и `produces` определяют форматы, а тело обрабатывают `HttpMessageConverter`. В библиотеке это Jackson и Jackson XML |
+| Интеграция | Требует реализации Jakarta REST, например Jersey, и её настройки в Spring Boot | Работает в существующем веб-слое Spring MVC и использует Spring-бины напрямую |
+
+Выбран Spring REST. Библиотека уже использует Spring Boot и Spring MVC. Контроллеры API вызывают те же `BookService` и `AuthorService`, что и страницы Thymeleaf, поэтому оба интерфейса работают с одной базой и применяют общие правила валидации и сохранения связей.
+
+### Маршруты
+
+| Метод | Книги | Авторы | Назначение и статус успеха |
+| --- | --- | --- | --- |
+| GET | `/api/books` | `/api/authors` | Получить список, `200 OK` |
+| POST | `/api/books` | `/api/authors` | Создать запись, `201 Created` с адресом в заголовке `Location` |
+| GET | `/api/books/{id}` | `/api/authors/{id}` | Получить запись, `200 OK` |
+| PUT | `/api/books/{id}` | `/api/authors/{id}` | Обновить запись, `200 OK` |
+| DELETE | `/api/books/{id}` | `/api/authors/{id}` | Удалить запись, `204 No Content` |
+
+Книга принимает `authorIds` — идентификаторы существующих авторов. При обновлении книги этот список заменяет прежний. В ответах автора поле `bookIds` содержит идентификаторы его книг. Для отсутствующей записи API возвращает `404`, для некорректных данных — `400`, для конфликта ограничений базы, например занятого ISBN, — `409`.
+
+### JSON и XML
+
+Заголовок `Content-Type` задаёт формат тела запроса для `POST` и `PUT`. Заголовок `Accept` задаёт желаемый формат ответа. В обоих заголовках можно указать `application/json` или `application/xml` независимо друг от друга.
+
+Пример тела JSON для `POST /api/books` (`book.json`, UTF-8).
+
+```json
+{"title":"Новая книга","isbn":"9780000000064","publicationYear":2026,"authorIds":[1,2]}
+```
+
+Пример тела XML для `POST /api/authors` (`author.xml`, UTF-8).
+
+```xml
+<author>
+    <firstName>Анна</firstName>
+    <lastName>Иванова</lastName>
+    <birthDate>1985-04-12</birthDate>
+</author>
+```
+
+В XML-теле книги список авторов записывается как `<authorIds><authorId>1</authorId><authorId>2</authorId></authorIds>`.
+
+Команды для PowerShell. Первая отправляет книгу в JSON и получает XML, вторая отправляет автора в XML и получает JSON.
+
+```powershell
+curl.exe -i -H 'Content-Type: application/json' -H 'Accept: application/xml' --data-binary '@book.json' http://localhost:8080/api/books
+curl.exe -i -H 'Content-Type: application/xml' -H 'Accept: application/json' --data-binary '@author.xml' http://localhost:8080/api/authors
+```
+
+### Проверка в браузере
+
+1. Откройте [Swagger UI](http://localhost:8080/swagger-ui.html), разверните операцию и нажмите **Try it out**. Для `POST` и `PUT` выберите формат запроса в **Request content type**. Для ответов с телом выберите формат в **Media Type**. Скопируйте `id` из ответа на создание, чтобы прочитать, обновить и удалить эту запись.
+2. В браузере с поддержкой XSLT откройте [XML-каталог книг](http://localhost:8080/api/books?format=xml) или [XML-каталог авторов](http://localhost:8080/api/authors?format=xml). Параметр `format=xml` выбирает XML, а инструкция `xml-stylesheet` подключает `/xsl/library.xsl`. Из списка можно открыть карточку и перейти к связанным записям.

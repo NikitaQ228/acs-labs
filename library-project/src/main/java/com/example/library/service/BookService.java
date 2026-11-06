@@ -77,12 +77,13 @@ public class BookService {
      *
      * @param id идентификатор книги или {@code null} для создания
      * @param form проверенные данные книги и идентификаторы её авторов
+     * @return сохранённая книга с идентификатором и загруженными авторами
      * @throws IllegalArgumentException если хотя бы один выбранный автор не существует
      * @throws ResponseStatusException с HTTP-статусом 404, если изменяемой книги нет
      * @throws org.springframework.dao.DataIntegrityViolationException если нарушены ограничения БД
      */
     @Transactional
-    public void save(Long id, BookForm form) {
+    public Book save(Long id, BookForm form) {
         List<Athor> authors = authorRepository.findAllById(form.getAuthorIds());
         if (authors.size() != form.getAuthorIds().size()) {
             throw new IllegalArgumentException("Один из авторов уже удалён. Выберите авторов заново.");
@@ -95,7 +96,7 @@ public class BookService {
             book.removeAuthor(author);
         }
         authors.forEach(book::addAuthor);
-        bookRepository.saveAndFlush(book);
+        return bookRepository.saveAndFlush(book);
     }
 
     /**

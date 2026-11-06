@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${authorId == null ? 'Новый автор' : 'Редактирование автора'})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('authors')}"></header>
+<main class="form-page">
+    <a class="back" th:href="@{/authors}">← Авторы</a>
+    <h1 th:text="${authorId == null ? 'Новый автор' : 'Редактирование автора'}"></h1>
+    <form class="editor" th:object="${authorForm}"
+          th:action="${authorId == null} ? @{/authors} : @{/authors/{id}(id=${authorId})}" method="post">
+        <p class="error" role="alert" th:if="${#fields.hasErrors('*')}">Проверьте отмеченные поля.</p>
+        <div class="fields">
+            <div>
+                <label for="firstName">Имя *</label>
+                <input id="firstName" th:field="*{firstName}" maxlength="100" required th:errorclass="invalid">
+                <p class="error" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></p>
+            </div>
+            <div>
+                <label for="lastName">Фамилия *</label>
+                <input id="lastName" th:field="*{lastName}" maxlength="100" required th:errorclass="invalid">
+                <p class="error" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></p>
+            </div>
+        </div>
+        <label for="birthDate">Дата рождения</label>
+        <input id="birthDate" type="date" th:field="*{birthDate}"
+               th:max="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}" th:errorclass="invalid">
+        <p class="error" th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></p>
+        <p class="hint">Поля со * обязательны. Книги автора выбираются в форме книги.</p>
+        <div class="form-actions">
+            <button type="submit">Сохранить</button>
+            <a th:href="@{/authors}">Отмена</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

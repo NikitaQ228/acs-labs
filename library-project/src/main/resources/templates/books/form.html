@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${bookId == null ? 'Новая книга' : 'Редактирование книги'})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('books')}"></header>
+<main class="form-page">
+    <a class="back" th:href="@{/books}">← Книги</a>
+    <h1 th:text="${bookId == null ? 'Новая книга' : 'Редактирование книги'}"></h1>
+    <form class="editor" th:object="${bookForm}"
+          th:action="${bookId == null} ? @{/books} : @{/books/{id}(id=${bookId})}" method="post">
+        <p class="error" role="alert" th:if="${#fields.hasErrors('*')}">Проверьте отмеченные поля.</p>
+        <label for="title">Название *</label>
+        <input id="title" th:field="*{title}" maxlength="255" required th:errorclass="invalid">
+        <p class="error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></p>
+
+        <div class="fields">
+            <div>
+                <label for="isbn">ISBN *</label>
+                <input id="isbn" th:field="*{isbn}" inputmode="numeric" pattern="[0-9]{13}" maxlength="13"
+                       placeholder="13 цифр без дефисов" required th:errorclass="invalid">
+                <p class="error" th:if="${#fields.hasErrors('isbn')}" th:errors="*{isbn}"></p>
+            </div>
+            <div>
+                <label for="publicationYear">Год издания *</label>
+                <input id="publicationYear" type="number" th:field="*{publicationYear}" min="1" max="9999"
+                       required th:errorclass="invalid">
+                <p class="error" th:if="${#fields.hasErrors('publicationYear')}" th:errors="*{publicationYear}"></p>
+            </div>
+        </div>
+
+        <fieldset>
+            <legend>Авторы *</legend>
+            <label class="check" th:each="author : ${authors}">
+                <input type="checkbox" th:field="*{authorIds}" th:value="${author.id}">
+                <span th:text="${author.firstName + ' ' + author.lastName}"></span>
+            </label>
+            <p class="muted" th:if="${#lists.isEmpty(authors)}">Сначала добавьте автора.</p>
+        </fieldset>
+        <p class="error" th:if="${#fields.hasErrors('authorIds')}" th:errors="*{authorIds}"></p>
+        <a th:href="@{/authors/new}">Добавить автора</a>
+        <p class="hint">Можно выбрать нескольких авторов. Поля со * обязательны.</p>
+        <div class="form-actions">
+            <button type="submit" th:disabled="${#lists.isEmpty(authors)}">Сохранить</button>
+            <a th:href="@{/books}">Отмена</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

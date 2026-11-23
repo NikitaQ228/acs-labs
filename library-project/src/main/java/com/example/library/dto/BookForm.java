@@ -11,13 +11,15 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Данные формы книги. Авторы передаются идентификаторами, а не JPA-сущностями.
+ * Данные для сохранения книги через HTML-форму или REST API.
  */
 @Getter
 @Setter
@@ -41,7 +43,9 @@ public class BookForm {
 
     /** Непустой набор идентификаторов выбранных авторов. */
     @NotEmpty(message = "Выберите хотя бы одного автора")
-    private Set<Long> authorIds = new LinkedHashSet<>();
+    @JacksonXmlElementWrapper(localName = "authorIds")
+    @JacksonXmlProperty(localName = "authorId")
+    private Set<@NotNull(message = "Укажите идентификатор автора") Long> authorIds = new LinkedHashSet<>();
 
     /**
      * Копирует книгу и идентификаторы её авторов в форму редактирования.

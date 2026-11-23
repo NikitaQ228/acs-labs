@@ -11,7 +11,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 
 /**
- * Данные формы создания или редактирования автора с правилами проверки полей.
+ * Данные для сохранения автора через HTML-форму или REST API.
  */
 @Getter
 @Setter

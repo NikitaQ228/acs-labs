@@ -2,9 +2,9 @@
 
 Репозиторий для выполнения практических работ по курсу «Архитектура корпоративных систем».
 
-| Практическая работа | Задание | Решение                             |
+| Практическая работа | Задание | Проект с решением                   |
 | --- | --- |-------------------------------------|
 | № 1. Jakarta EE | [PDF](Задания/01.%20JakartaEE.pdf) | [support-service](support-service/) |
 | № 2. Spring | [PDF](Задания/02.%20Spring.pdf) | [library-project](library-project/) |
-| № 3. REST | [PDF](Задания/03.%20REST.pdf) | —                                   |
+| № 3. REST | [PDF](Задания/03.%20REST.pdf) | [library-project](library-project/) |
 | № 4. JMS | [PDF](Задания/04.%20JMS.pdf) | —                                   |

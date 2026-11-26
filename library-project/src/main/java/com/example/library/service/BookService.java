@@ -1,11 +1,13 @@
 package com.example.library.service;
 
 import com.example.library.dto.BookForm;
+import com.example.library.jms.LibraryChange;
 import com.example.library.model.Athor;
 import com.example.library.model.Book;
 import com.example.library.repository.AuthorRepository;
 import com.example.library.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,7 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final AuthorRepository authorRepository;
+    private final ApplicationEventPublisher events;
 
     /**
      * Ищет книги по названию, ISBN или имени автора без учёта регистра.
@@ -74,6 +77,7 @@ public class BookService {
     /**
      * Создаёт или обновляет книгу, заменяя состав авторов выбранным в форме.
      * Изменения книги и связей сохраняются в одной транзакции.
+     * Снимок сохраненных данных формируется в этой транзакции и отправляется в JMS после коммита.
      *
      * @param id идентификатор книги или {@code null} для создания
      * @param form проверенные данные книги и идентификаторы её авторов
@@ -96,17 +100,24 @@ public class BookService {
             book.removeAuthor(author);
         }
         authors.forEach(book::addAuthor);
-        return bookRepository.saveAndFlush(book);
+        Book saved = bookRepository.saveAndFlush(book);
+        events.publishEvent(LibraryChange.forBook(id == null ? LibraryChange.Operation.CREATE
+                : LibraryChange.Operation.UPDATE, saved));
+        return saved;
     }
 
     /**
      * Удаляет книгу и её связи, сохраняя записи авторов.
+     * Снимок с идентификаторами авторов формируется до удаления и отправляется в JMS после коммита.
      *
      * @param id идентификатор удаляемой книги
      * @throws ResponseStatusException с HTTP-статусом 404, если книга не найдена
      */
     @Transactional
     public void delete(Long id) {
-        bookRepository.delete(get(id));
+        Book book = get(id);
+        LibraryChange change = LibraryChange.forBook(LibraryChange.Operation.DELETE, book);
+        bookRepository.delete(book);
+        events.publishEvent(change);
     }
 }

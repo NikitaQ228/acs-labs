@@ -1,10 +1,12 @@
 package com.example.library.service;
 
 import com.example.library.dto.AuthorForm;
+import com.example.library.jms.LibraryChange;
 import com.example.library.model.Athor;
 import com.example.library.model.Book;
 import com.example.library.repository.AuthorRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ import java.util.Locale;
 public class AuthorService {
 
     private final AuthorRepository authorRepository;
+    private final ApplicationEventPublisher events;
 
     /**
      * Ищет авторов по имени и фамилии без учёта регистра.
@@ -55,6 +58,7 @@ public class AuthorService {
 
     /**
      * Создаёт автора или обновляет его сведения, не меняя связей с книгами.
+     * Снимок сохраненных данных формируется в транзакции и отправляется в JMS после коммита.
      *
      * @param id идентификатор автора или {@code null} для создания
      * @param form проверенные данные формы
@@ -67,11 +71,15 @@ public class AuthorService {
         author.setFirstName(form.getFirstName().strip());
         author.setLastName(form.getLastName().strip());
         author.setBirthDate(form.getBirthDate());
-        return authorRepository.save(author);
+        Athor saved = authorRepository.save(author);
+        events.publishEvent(LibraryChange.forAuthor(id == null ? LibraryChange.Operation.CREATE
+                : LibraryChange.Operation.UPDATE, saved));
+        return saved;
     }
 
     /**
      * Удаляет автора и его связи с книгами. Сами книги остаются в каталоге.
+     * Снимок с идентификаторами книг формируется до удаления связей и отправляется в JMS после коммита.
      *
      * @param id идентификатор удаляемого автора
      * @throws ResponseStatusException с HTTP-статусом 404, если автор не найден
@@ -79,9 +87,11 @@ public class AuthorService {
     @Transactional
     public void delete(Long id) {
         Athor author = get(id);
+        LibraryChange change = LibraryChange.forAuthor(LibraryChange.Operation.DELETE, author);
         for (Book book : new ArrayList<>(author.getBooks())) {
             book.removeAuthor(author);
         }
         authorRepository.delete(author);
+        events.publishEvent(change);
     }
 }

@@ -42,3 +42,4 @@ build/
 
 ### library-project ###
 /library-project/HELP.md
+/library-project/.env
